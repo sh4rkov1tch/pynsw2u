@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <style>
+    .container {
+      margin-top: 2%;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .card {
+      flex: 0 1 33%;
+	  max-height: 480px;
+    }
+  </style>
+  <div class="container">
+  {% for game_name,file in data.items() %}
+   <div class="card overflow-auto text-white bg-primary mb-3" style="max-width: 20rem;">
+    <div class="card-body">
+      <h4 class="card-title">{{game_name}}</h4>
+      {% for file_name,properties in file.items() %}
+        <p class="card-text font-weight-bold">{{file_name}}</p>
+	<ul>
+	  <li>Filetype: {{properties['filetype'].upper()}}</li>
+	  <li>Size: {{properties['size']}}</li>
+	  <li>
+	    Links:
+            <ul>
+	      {% for host,link in properties['links'].items() %}
+	      <li><a href="{{link}}">{{host}}</a></li>
+	      {% endfor %}
+	    </ul>
+	  </li>
+	</ul>
+       {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+{% endblock %}
