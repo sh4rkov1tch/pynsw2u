@@ -2,7 +2,7 @@
 This site is fucking horrible to navigate through so let's scrape it instead
 
 ## Pre-requisites
-Clone the repository, create a virtualenv, install all the requirements, add your AQWS Access Key and Secret Key to your environment (refer to [requests-ip-rotator](https://github.com/Ge0rg3/requests-ip-rotator#aws-authentication)) and you're ready to launch the main.py executable
+Clone the repository, create a virtualenv, install all the requirements, add your AWS Access Key and Secret Key to your environment (refer to [requests-ip-rotator](https://github.com/Ge0rg3/requests-ip-rotator#aws-authentication)) and you're ready to launch the main.py executable
 
 ```
 git clone https://github.com/Sharqo78/pynsw2u
