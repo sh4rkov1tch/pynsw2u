@@ -20,5 +20,9 @@ A file that's called `final_scrape.json` that contains every game that the scrip
 ## What's the Flask app for ?
 Once you are done scraping, just launch the Flask app and go to `http://localhost:5000` to search for the games you want in a more intuitive way (reading JSON files is really tiring..)
 
+```
+cd flask_app
+flask --app app run
+```
 ## Why is the code so ugly ?
 I just wanted it to work alright
