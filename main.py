@@ -155,6 +155,6 @@ def main():
     with open('final_scrape.json', 'w') as o:
         json.dump(games, o, indent=2)
     
-    shutil.rmtree(TEMPFOLDER)
+    rmtree(TEMPFOLDER)
     g.shutdown()
 if __name__ == '__main__': main()
