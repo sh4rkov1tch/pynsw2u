@@ -65,7 +65,7 @@ def parse_tables(html: str) -> dict:
     soup = BeautifulSoup(html, features="lxml")
     rows = [r for r in soup('tr') if 'ouo' in str(r) and 3 <= len(r.find_all('td')) <= 4]
     ret = {}
-    reg = re.compile(r'(MB)|(GB)')
+    reg = re.compile(r'(KB)|(MB)|(GB)')
 
     for row in rows:
         cells = row.find_all('td')
