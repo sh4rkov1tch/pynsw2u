@@ -13,16 +13,11 @@ from shutil import rmtree
 
 from random import choice
 
+HEADERS = []
 with open('useragents.txt', 'r') as ua:
-    HEADERS = []
     for line in ua.readlines():
-          HEADERS.append({'User-Agent': line.strip()})
+        HEADERS.append({'User-Agent': line.strip()})
 TEMPFOLDER = './temp'
-
-g = ApiGateway("https://nsw2u.net/")
-g.start()
-s = rq.Session()
-s.mount('https://nsw2u.net', g)
 
 class GameLinkParser(HTMLParser):
     def __init__(self):
@@ -60,12 +55,44 @@ def parse_popular_game_links() -> list:
     for _,link in parser_links:
         link.replace('.com', '.net')
     return parser_links
+
+def parse_divs(html: str) -> dict:
+    soup = BeautifulSoup(html, features="lxml")
+    ret = {}
+    reg_type = re.compile(r'(NSP)|(XCI)|(NSZ)')
+    reg_size = re.compile(r'[0-9]{1,4}\.?[0-9]{1,3}\s?(?:(?:GB)|(?:MB)|(?:KB))')
+
+    links = [r for r in soup('a') if 'ouo.io' in str(r)]
+    divs = soup('div', attrs={'style': 'text-align: center;'}, string=reg_type)
+    sizes = [s.text for s in soup('div', attrs={'style': 'text-align: center;'}) if reg_size.findall(s.text)] 
+    sizes = [reg_size.findall(s) for s in sizes]
+    sizes = [s for y in sizes for s in y]
+    divs = divs[1:]
+
+    print(len(links))
+    print(len(sizes))
+    print(len(divs))
     
+    n = 0
+    for i, link in enumerate(links):
+        if len(divs) > i:
+            n = i
+        split = divs[n].text.split()
+        host = split[0]
+        filetype = split[1]
+        ret[link.text.strip()] = {
+            "filetype": filetype.lower().strip(),
+            "size": sizes[i],
+            "links": {host.lower().strip(): link.attrs['href']}
+        }
+    return ret
+
 def parse_tables(html: str) -> dict:
     soup = BeautifulSoup(html, features="lxml")
     rows = [r for r in soup('tr') if 'ouo' in str(r) and 3 <= len(r.find_all('td')) <= 4]
-    ret = {}
     reg = re.compile(r'(KB)|(MB)|(GB)')
+    ret = {}
+
 
     for row in rows:
         cells = row.find_all('td')
@@ -91,18 +118,22 @@ def parse_tables(html: str) -> dict:
         print(json.dumps(ret[title], indent=2))
     return ret
 
-def scrape_game_page(link: str) -> dict:
+def scrape_game_page(link: str, use_session: bool) -> dict:
+    if use_session: sess = s
+    else: sess = rq
     game = {}
     print(f'\tParsing {link}')
     res = None
     try:
         
         hd = choice(HEADERS)
-        res = s.get(link, headers=hd, allow_redirects=True)
+        res = sess.get(link, headers=hd, allow_redirects=True)
     except Exception as e:    
         print(f'\tCould not make request, {e}')
     try:
         game = parse_tables(res.content.decode())
+        if game == {}:
+            game = parse_divs(res.content.decode())
     except Exception as e:
         print(f'\tCould not parse HTML, {e}')
 
@@ -111,12 +142,19 @@ def scrape_game_page(link: str) -> dict:
 def scrape_chunk(chunk: list):
     games = {}
     for title, link in chunk[1]:
-        games[title] = scrape_game_page(link)
+        games[title] = scrape_game_page(link, True)
     
     with open(f'temp/scrape-{chunk[0]}.json', 'w') as f:
         json.dump(games, f)
 
 def main():
+    global g
+    global s
+    
+    g = ApiGateway("https://nsw2u.net/")
+    g.start()
+    s = rq.Session()
+    s.mount('https://nsw2u.net', g)
     
     if os.path.exists(TEMPFOLDER):
         rmtree(TEMPFOLDER)
